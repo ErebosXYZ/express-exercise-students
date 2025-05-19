@@ -1,15 +1,22 @@
-const express = require('express')
+const fs = require('fs');
+const express = require('express');
 
-const app = express()
+const app = express();
+const bodyParser = require('body-parser');
+
+
+
+
+app.use(express.static("server-6-static-files"));
 
 app.get('/formulario', (req, res) => {
-    res.status(200).send(`
+  res.status(200).send(`
     <html>
     <head>
-    <link rel="stylesheet" href="/estilos.css">
+    <link rel="stylesheet" href="estilos.css">
     </head>
     <body>
-    <form class="form" method="POST" action="/">
+    <form class="form" method="POST" action="/formulario">
     <label for="name" class="label-name">Name</label>
     <input type="text" id="name" name="name" maxlength="40" class="field field-name" />
   
@@ -24,11 +31,30 @@ app.get('/formulario', (req, res) => {
   </body>
     </html>
   `)
-})
+});
+
+app.use(bodyParser.urlencoded({ extended: true }));
+
+
+app.post("/formulario", (req, res) => {
+  const { name, email, message } = req.body;
+  
+  const linea = `"${name}","${email}", "${message}"\n`;
+  fs.appendFile('inscritos.csv', linea, (err) => {
+    if (err) {
+      console.error('Error al guardar:', err);
+      return res.status(500).send('Error al guardar los datos');
+    }
+  });
+  res.send("Usuario inscrito correctamente");
+}
+)
 
 app.use((req, res) => {
-    res.status(404).send('Recurso no encontrado...')
-  })
+  res.status(404).send('Recurso no encontrado...')
+});
+
+
 
 app.listen(3000)
-  
+
